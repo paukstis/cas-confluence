@@ -1,0 +1,35 @@
+# Tomcat connector proxyName value in server.xml, port by default is set to 443
+# this is the hostname part of your Confluence URL.
+# ** Required **
+MY_SERVER_PROXYNAME = confluence.example.org
+
+# Java keystore with certificate for Tomcat server, used in server.xml
+# ** Optional **
+MY_SERVER_KEYSTORE = \\/home\\/confluence\\/conf\\/keystore.jks
+
+# Additional Java environment vars, leave it empty if nothing to add, this
+# is the place to indicate your outgoing web proxy details if any
+# ** Required **
+MY_SETENV_OPTS = -Dhttp.proxyHost=webproxy.example.org -Dhttp.proxyPort=8080 -Dhttps.proxyHost=webproxy.example.org -Dhttps.proxyPort=8080 -Dhttp.nonProxyHosts=*.example.org\\\|*.example.net\\\|localhost -Dhttps.nonProxyHosts=*.example.org\\\|*.example.net\\\|localhost
+
+# CAS server hostname and application path
+# ** Required **
+MY_CAS_SERVER_PREFIX = cas.example.org\\/cas
+
+# If secure LDAPS is configured in Confluence, then a CA certificate which
+# issued LDAPS cert can be included in Confluence JRE keystore, otherwise
+# JRE will complain and user directory sync will fail.
+# ** Optional **
+MY_CACERT_FILE = /home/confluence/ca-root.crt
+
+# Alias parameter for keytool when adding MY_CACERT_FILE
+# ** Required **, only used with MY_CACERT_FILE
+MY_CACERT_ALIAS = EXAMPLEORGCERTCA
+
+# Path where Confluence is installed
+# ** Required **
+APP_HOME = /opt/atlassian/confluence
+
+# Tested and working java-cas-client commit to build
+# ** Required **
+JAVA_CAS_CLIENT_COMMIT = 675eeab

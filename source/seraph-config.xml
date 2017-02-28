@@ -2,11 +2,13 @@
     <parameters>
         <init-param>
             <param-name>login.url</param-name>
-            <param-value>/login.action?os_destination=${originalurl}&amp;permissionViolation=true</param-value>
+<!--            <param-value>/login.action?os_destination=${originalurl}&amp;permissionViolation=true</param-value> -->
+            <param-value>https://MY_CAS_SERVER_PREFIX/login?service=${originalurl}</param-value>
         </init-param>
         <init-param>
             <param-name>link.login.url</param-name>
-            <param-value>/login.action</param-value>
+<!--            <param-value>/login.action</param-value> -->
+            <param-value>https://MY_CAS_SERVER_PREFIX/login?service=${originalurl}</param-value>
         </init-param>
         <init-param>
             <param-name>cookie.encoding</param-name>
@@ -20,7 +22,9 @@
         <!--only basic authentication available-->
         <init-param>
             <param-name>authentication.type</param-name>
+<!--
             <param-value>os_authType</param-value>
+-->
         </init-param>
         
         <!-- Invalidate session on login to prevent session fixation attack -->
@@ -40,7 +44,10 @@
     <controller class="com.atlassian.confluence.setup.seraph.ConfluenceSecurityController"/>
 
     <!-- Default Confluence authenticator, which uses the configured user management for authentication. -->
-    <authenticator class="com.atlassian.confluence.user.ConfluenceAuthenticator"/>
+<!--    <authenticator class="com.atlassian.confluence.user.ConfluenceAuthenticator"/> -->
+<!-- CAS:START - Java Client Confluence Authenticator -->
+    <authenticator class="org.jasig.cas.client.integration.atlassian.Confluence35CasAuthenticator"/>
+<!-- CAS:END -->
 
     <!-- Custom authenticators appear below. To enable one of them, comment out the default authenticator above and uncomment the one below. -->
 

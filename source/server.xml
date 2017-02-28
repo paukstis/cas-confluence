@@ -3,7 +3,8 @@
         <Connector port="8090" connectionTimeout="20000" redirectPort="8443"
                 maxThreads="48" minSpareThreads="10"
                 enableLookups="false" acceptCount="10" debug="0" URIEncoding="UTF-8"
-                protocol="org.apache.coyote.http11.Http11NioProtocol" />
+                protocol="org.apache.coyote.http11.Http11NioProtocol"
+                proxyName="MY_SERVER_PROXYNAME" proxyPort="443" scheme="https" />
 
         <Engine name="Standalone" defaultHost="localhost" debug="0">
 
@@ -36,7 +37,7 @@
                    enableLookups="false" disableUploadTimeout="true"
                    acceptCount="100" scheme="https" secure="true"
                    clientAuth="false" sslProtocols="TLSv1,TLSv1.1,TLSv1.2" sslEnabledProtocols="TLSv1,TLSv1.1,TLSv1.2" SSLEnabled="true"
-                   URIEncoding="UTF-8" keystorePass="<MY_CERTIFICATE_PASSWORD>"/>
+                   URIEncoding="UTF-8" keystorePass="changeit" keystoreFile="MY_SERVER_KEYSTORE" />
 -->
     </Service>
 </Server>

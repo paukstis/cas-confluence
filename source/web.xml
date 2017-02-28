@@ -620,6 +620,47 @@
 
     <!-- End plugins 2.5 filter changes -->
 
+<!-- CAS:START - Java Client Filters -->
+
+<filter>
+  <filter-name>CasSingleSignOutFilter</filter-name>
+  <filter-class>org.jasig.cas.client.session.SingleSignOutFilter</filter-class>
+  <init-param>
+    <param-name>casServerUrlPrefix</param-name>
+    <param-value>https://MY_CAS_SERVER_PREFIX</param-value>
+  </init-param>
+</filter>
+<filter>
+  <filter-name>CasAuthenticationFilter</filter-name>
+  <filter-class>org.jasig.cas.client.authentication.AuthenticationFilter</filter-class>
+  <init-param>
+    <param-name>casServerLoginUrl</param-name>
+    <param-value>https://MY_CAS_SERVER_PREFIX/login</param-value>
+  </init-param>
+  <init-param>
+    <param-name>serverName</param-name>
+    <param-value>https://MY_SERVER_PROXYNAME</param-value>
+  </init-param>
+</filter>
+<filter>
+    <filter-name>CasValidationFilter</filter-name>
+    <filter-class>org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter</filter-class>
+    <init-param>
+        <param-name>casServerUrlPrefix</param-name>
+        <param-value>https://MY_CAS_SERVER_PREFIX</param-value>
+    </init-param>
+    <init-param>
+        <param-name>serverName</param-name>
+        <param-value>https://MY_SERVER_PROXYNAME</param-value>
+    </init-param>
+    <init-param>
+        <param-name>redirectAfterValidation</param-name>
+        <param-value>true</param-value>
+    </init-param>
+</filter>
+
+<!--- CAS:END -->
+
     <!--
     These mappings for dropIfNotSetupFilter are hacks to prevent setup from failing if there are Confluence browser
     tabs open that are pointing to the same instance. They should be safe to remove once CONFDEV-9627 is fixed.
@@ -774,6 +815,26 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+<!-- CAS:START - Java Client Filter Mappings -->
+
+<filter-mapping>
+   <filter-name>CasSingleSignOutFilter</filter-name>
+   <url-pattern>/*</url-pattern>
+</filter-mapping>
+<filter-mapping>
+    <filter-name>CasAuthenticationFilter</filter-name>
+    <url-pattern>/login.action</url-pattern>
+</filter-mapping>
+<filter-mapping>
+    <filter-name>CasAuthenticationFilter</filter-name>
+    <url-pattern>/plugins/servlet/mobile</url-pattern>
+</filter-mapping>
+<filter-mapping>
+    <filter-name>CasValidationFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+
+<!-- CAS:END -->
 
     <filter-mapping>
         <filter-name>request-param-cleaner</filter-name>
@@ -1435,6 +1496,14 @@
     <listener>
         <listener-class>com.atlassian.confluence.util.http.ConfluenceAttributeListener</listener-class>
     </listener>
+
+<!-- CAS:START - Java Client Single Sign Out Listener -->
+
+<listener>
+    <listener-class>org.jasig.cas.client.session.SingleSignOutHttpSessionListener</listener-class>
+</listener>
+
+<!-- CAS:END -->
 
     <!-- ======== -->
     <!-- Servlets -->

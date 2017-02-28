@@ -260,7 +260,10 @@
         <action name="logout" class="com.atlassian.confluence.user.actions.LogoutAction">
             <interceptor-ref name="defaultStack"/>
             <result name="error" type="velocity">/logout.vm</result>
-            <result name="success" type="redirect">${logoutUrl}</result>
+<!--            <result name="success" type="redirect">${logoutUrl}</result> -->
+<!-- CAS:START - CAS Logout Redirect -->
+            <result name="success" type="redirect">https://MY_CAS_SERVER_PREFIX/logout</result>
+<!-- CAS:END -->
         </action>
 
         <!-- The old administrators mapping is maintained for compatibility (Confluen -->
