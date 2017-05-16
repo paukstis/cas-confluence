@@ -78,7 +78,7 @@
                 <interceptor-ref name="userAware"/>
                 <interceptor-ref name="prepare"/>
                 <!-- Must come after pageAware and spaceAware to make sure that pages and spaces are loaded-->
-                <!-- Must come before permissions as isPermitted might reguire some bootstrapping-->
+                <!-- Must come before permissions as isPermitted might require some bootstrapping-->
                 <interceptor-ref name="bootstrapAware"/>
                 <interceptor-ref name="permissions"/>
                 <!-- It's a good idea to put this after the permissions check, in case you can determine the existence
@@ -883,6 +883,8 @@
         <action name="pagenotpermitted" class="com.atlassian.confluence.pages.actions.PageNotPermittedAction">
             <result name="success" type="velocity">/pages/pagenotpermitted.vm</result>
             <result name="login" type="redirect">${loginUrl}</result>
+            <result name="noEditPermission" type="redirect">${noPageEditPermissionRedirectUrl}</result>
+            <result name="noSpaceEditPermission" type="redirect">${noSpaceEditPermissionRedirectUrl}</result>
         </action>
 
         <action name="movepage" class="com.atlassian.confluence.pages.actions.MovePageAction">
@@ -1495,11 +1497,10 @@
         </action>
 
         <action name="resumedraft" class="com.atlassian.confluence.pages.actions.ResumeDraftAction">
-            <result name="resumenewpage" type="redirect">/pages/create${type}.action?useDraft=true&amp;spaceKey=${spaceKey}&amp;draftId=${draftId}</result>
-            <result name="resumenewpageshared" type="redirect">/pages/create${type}.action?useDraft=true&amp;spaceKey=${spaceKey}&amp;draftId=${draftId}&amp;draftShareId=${draftShareId}</result>
+            <result name="resumenewpage" type="redirect">/pages/create${type}.action?useDraft=true&amp;spaceKey=${spaceKey}&amp;draftId=${draftId}${inviteToEditParams}</result>
+            <result name="resumenewpageshared" type="redirect">/pages/create${type}.action?useDraft=true&amp;spaceKey=${spaceKey}&amp;draftId=${draftId}&amp;draftShareId=${draftShareId}${inviteToEditParams}${analyticsParameters}</result>
 
-            <result name="resume" type="redirect">/pages/edit${type}.action?useDraft=true&amp;spaceKey=${spaceKey}&amp;draftId=${draftId}&amp;pageId=${pageId}</result>
-
+            <result name="resume" type="redirect">/pages/edit${type}.action?useDraft=true&amp;spaceKey=${spaceKey}&amp;draftId=${draftId}&amp;pageId=${pageId}${inviteToEditParams}${analyticsParameters}</result>
             <result name="viewconflict" type="redirect">/pages/edit${type}.action?viewConflict=true&amp;useDraft=true&amp;spaceKey=${spaceKey}&amp;draftId=${draftId}&amp;pageId=${pageId}</result>
 
             <result name="error" type="redirect">/users/viewmydrafts.action</result>
@@ -1836,6 +1837,7 @@
         <action name="setupstart" class="com.atlassian.confluence.setup.actions.SetupStartAction" method="doDefault">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="input" type="velocity">/setup/setupstart.vm</result>
+            <result name="skipToNextStep" type="redirect">dosetupstart.action?setupType=custom</result>
         </action>
 
         <action name="dosetupstart" class="com.atlassian.confluence.setup.actions.SetupStartAction">
@@ -1893,6 +1895,7 @@
         <action name="setupdbchoice-start" class="com.atlassian.confluence.setup.actions.SetupDBChoiceAction" method="doDefault">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="input" type="velocity">/setup/setupdbchoice.vm</result>
+            <result name="skipToNextStep" type="redirect">setupdb-start.action?database=${database}</result>
         </action>
 
         <action name="setupdbchoice" class="com.atlassian.confluence.setup.actions.SetupDBChoiceAction">
@@ -1907,6 +1910,7 @@
         <action name="setupcluster-start" class="com.atlassian.confluence.setup.actions.SetupClusterAction" method="doDefault">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="input" type="velocity">/setup/setupcluster.vm</result>
+            <result name="skipToNextStep" type="redirect">setupcluster.action?clusterName=${clusterName}&amp;joinMethod=${joinMethod}&amp;clusterHome=${clusterHome}&amp;setupClusterType=${setupClusterType}&amp;accessKey=${accessKey}&amp;secretKey=${secretKey}&amp;iamRole=${iamRole}&amp;hostHeader=${hostHeader}&amp;tagKey=${tagKey}&amp;tagValue=${tagValue}</result>
         </action>
 
         <action name="setupcluster" class="com.atlassian.confluence.setup.actions.SetupClusterAction">
@@ -1919,6 +1923,7 @@
         <action name="setupdb-start" class="com.atlassian.confluence.setup.actions.SetupDatabaseAction" method="doDefault">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="input" type="velocity">/setup/setupdb.vm</result>
+            <result name="skipToNextStep" type="redirect">setupstandarddb.action?database=${database}&amp;dbConfigInfo.databaseUrl=""&amp;dbConfigInfo.driverClassName=""&amp;dbConfigInfo.userName=""&amp;dbConfigInfo.password=""</result>
         </action>
 
         <action name="setupdb" class="com.atlassian.confluence.setup.actions.SetupDatabaseAction">
@@ -1931,8 +1936,7 @@
         <action name="setupembeddeddb-default" class="com.atlassian.confluence.setup.actions.SetupEmbeddedDatabaseAction">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="error" type="velocity">/setup/setupembeddeddb-failed.vm</result>
-            <result name="quick-setup" type="redirect">setuppaths.action</result>
-            <result name="custom-setup" type="redirect">setuppaths.action</result>
+            <result name="success" type="redirect">setuppaths.action</result>
         </action>
 
         <action name="setupstandarddb-start" class="com.atlassian.confluence.setup.actions.SetupStandardDatabaseAction" method="doDefault">
@@ -2069,10 +2073,6 @@
         <action name="finishsetup" class="com.atlassian.confluence.setup.actions.FinishSetupAction">
             <result name="success" type="velocity">/setup/setupsuccess.vm</result>
             <result name="error" type="velocity">/setup/setupsuccess.vm</result>
-        </action>
-
-        <action name="awaiting-tenant" class="com.atlassian.confluence.core.ConfluenceActionSupport">
-            <result name="success" type="velocity">/setup/awaiting-tenant.vm</result>
         </action>
     </package>
 
@@ -2725,36 +2725,6 @@
             <result name="error" type="json"/>
             <result name="success" type="json"/>
         </action>
-
-        <action name="migrate-external-memberships" class="com.atlassian.confluence.admin.actions.migration.MigrateExternalMembershipsAction" method="doDefault">
-            <interceptor-ref name="defaultStack"/>
-            <result name="input" type="velocity">/admin/migration/migrate-external-memberships.vm</result>
-            <result name="error" type="velocity">/admin/migration/migrate-external-memberships.vm</result>
-            <result name="success" type="velocity">/admin/migration/migrate-external-memberships.vm</result>
-        </action>
-
-        <action name="do-migrate-external-memberships" class="com.atlassian.confluence.admin.actions.migration.MigrateExternalMembershipsAction" method="execute">
-            <param name="RequireSecurityToken">true</param>
-            <interceptor-ref name="validatingStack"/>
-            <result name="input" type="velocity">/admin/migration/migrate-external-memberships.vm</result>
-            <result name="error" type="velocity">/admin/migration/migrate-external-memberships.vm</result>
-            <result name="success" type="dispatcher">/longrunningtask.action</result>
-        </action>
-
-        <action name="migrate-user-propertyentries" class="com.atlassian.confluence.admin.actions.migration.MigrateUserPropertyEntriesAction" method="doDefault">
-            <interceptor-ref name="defaultStack"/>
-            <result name="input" type="velocity">/admin/migration/migrate-user-propertyentries.vm</result>
-            <result name="error" type="velocity">/admin/migration/migrate-user-propertyentries.vm</result>
-            <result name="success" type="velocity">/admin/migration/migrate-user-propertyentries.vm</result>
-        </action>
-
-        <action name="do-migrate-user-propertyentries" class="com.atlassian.confluence.admin.actions.migration.MigrateUserPropertyEntriesAction" method="execute">
-            <param name="RequireSecurityToken">true</param>
-            <interceptor-ref name="validatingStack"/>
-            <result name="input" type="velocity">/admin/migration/migrate-user-propertyentries.vm</result>
-            <result name="error" type="velocity">/admin/migration/migrate-user-propertyentries.vm</result>
-            <result name="success" type="dispatcher">/longrunningtask.action?taskId=${taskId}</result>
-        </action>
     </package>
 
     <package name="users" extends="default" namespace="/users">
@@ -3054,10 +3024,6 @@
             <result name="success" type="json"/>
             <result name="error" type="json"/>
             <result name="input" type="json"/>
-        </action>
-
-        <action name="heartbeat" class="com.atlassian.confluence.pages.actions.HeartbeatAction" method="heartbeat">
-            <result name="success" type="json"/>
         </action>
 
         <action name="startheartbeatactivity" class="com.atlassian.confluence.pages.actions.HeartbeatAction" method="startActivity">
