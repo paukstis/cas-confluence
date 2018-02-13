@@ -966,6 +966,7 @@
             <result name="input" type="velocity">/pages/createpage.vm</result>
             <result name="already-exists" type="redirect">${@com.atlassian.confluence.util.GeneralUtil@getPageUrl(page)}</result>
             <result name="locked" type="redirectwithflash">/users/viewmydrafts.action?editingLocked</result>
+            <result name="user-limit-reached" type="redirect">/users/viewmydrafts.action?userLimitReached</result>
             <result name="activity-unavailable" type="redirect">/users/viewmydrafts.action?editingFailed</result>
         </action>
 
@@ -1018,6 +1019,7 @@
             <result name="error" type="velocity">/pages/createpage.vm</result>
             <result name="input" type="velocity">/pages/createpage.vm</result>
             <result name="locked" type="redirectwithflash">/users/viewmydrafts.action?editingLocked</result>
+            <result name="user-limit-reached" type="redirect">/users/viewmydrafts.action?userLimitReached</result>
             <result name="activity-unavailable" type="redirect">/users/viewmydrafts.action?editingFailed</result>
         </action>
 
@@ -1098,6 +1100,7 @@
             <result name="input" type="velocity">/pages/editpage.vm</result>
             <result name="success" type="velocity">/pages/editpage.vm</result>
             <result name="locked" type="redirectwithflash">/pages/viewpage.action?pageId=${page.id}&amp;editingLocked</result>
+            <result name="user-limit-reached" type="redirect">/pages/viewpage.action?pageId=${page.id}&amp;userLimitReached</result>
             <result name="activity-unavailable" type="redirect">/pages/viewpage.action?pageId=${page.id}&amp;editingFailed</result>
         </action>
 
@@ -1123,6 +1126,7 @@
             <result name="input" type="velocity">/pages/editpage.vm</result>
             <result name="success" type="velocity">/pages/editpage.vm</result>
             <result name="locked" type="redirectwithflash">/pages/viewpage.action?pageId=${page.id}&amp;editingLocked</result>
+            <result name="user-limit-reached" type="redirect">/pages/viewpage.action?pageId=${page.id}&amp;userLimitReached</result>
             <result name="activity-unavailable" type="redirect">/pages/viewpage.action?pageId=${page.id}&amp;editingFailed</result>
         </action>
 
@@ -1783,7 +1787,7 @@
         <action name="selectsetupstep" class="com.atlassian.confluence.setup.actions.SelectSetupStepAction">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="success" type="redirect">${currentStep}</result>
-            <result name="checklist" type="velocity">/checklist.vm</result>
+            <result name="checklist" type="redirect">/errors.jsp</result>
         </action>
 
         <action name="longrunningtaskxml" class="com.atlassian.confluence.admin.actions.LongRunningTaskMonitorAction" method="doTaskStatus">
@@ -1889,7 +1893,6 @@
         <action name="dosetuplicense" class="com.atlassian.confluence.setup.actions.SetupLicenseAction">
             <result name="error" type="velocity">/setup/setuplicense.vm</result>
             <result name="input" type="velocity">/setup/setuplicense.vm</result>
-            <result name="success" type="redirect">setupdb-start.action</result>
             <result name="quick-setup" type="redirect">setupembeddeddb-default.action</result>
             <result name="custom-setup" type="redirect">setupdbchoice-start.action</result>
             <result name="cluster-setup" type="redirect">setupcluster-start.action</result>
@@ -1898,16 +1901,32 @@
         <action name="setupdbchoice-start" class="com.atlassian.confluence.setup.actions.SetupDBChoiceAction" method="doDefault">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="input" type="velocity">/setup/setupdbchoice.vm</result>
-            <result name="skipToNextStep" type="redirect">setupdb-start.action?database=${database}</result>
+            <result name="skipToNextStepCluster" type="redirect">setupdbtype-start.action?thisNodeClustered=true</result>
+            <result name="skipToNextStep" type="redirect">setupdbtype-start.action?database=${database}</result>
         </action>
 
         <action name="setupdbchoice" class="com.atlassian.confluence.setup.actions.SetupDBChoiceAction">
             <interceptor-ref name="validatingSetupStack"/>
             <result name="input" type="velocity">/setup/setupdbchoice.vm</result>
-            <result name="error" type="velocity">/setup/setupdbchoice.vm</result>
-            <result name="input-embedded-db" type="redirect">setupembeddeddb-default.action</result>
-            <result name="setupdb" type="redirect">setupdb-start.action?database=${database}</result>
+            <result name="quick-setup" type="redirect">setupembeddeddb-default.action</result>
+            <result name="setupdbcluster" type="redirect">setupdbtype-start.action?thisNodeClustered=true</result>
+            <result name="setupdb" type="redirect">setupdbtype-start.action</result>
+            <result name="setupdatasource" type="redirect">setupdatasourcedb-start.action</result>
             <result name="cluster" type="redirect">finishsetup.action</result>
+        </action>
+
+        <action name="setupdbtype-start" class="com.atlassian.confluence.setup.actions.SetupDBTypeAction" method="doDefault">
+            <interceptor-ref name="defaultSetupStack"/>
+            <result name="input" type="velocity">/setup/setupdbtype.vm</result>
+            <result name="skipToNextStep" type="redirect">setupdbtype.action?database=${database}</result>
+        </action>
+
+        <action name="setupdbtype" class="com.atlassian.confluence.setup.actions.SetupDBTypeAction">
+            <interceptor-ref name="validatingSetupStack"/>
+            <result name="input" type="velocity">/setup/setupdbtype.vm</result>
+            <result name="success" type="redirect">setuppaths.action</result>
+            <result name="data-exists" type="velocity">/setup/setupdbtype-data-exists.vm</result>
+            <result name="error" type="velocity">/setup/setupdbtype-failed.vm</result>
         </action>
 
         <action name="setupcluster-start" class="com.atlassian.confluence.setup.actions.SetupClusterAction" method="doDefault">
@@ -1923,42 +1942,25 @@
             <result name="cluster" type="redirect">finishsetup.action</result>
         </action>
 
-        <action name="setupdb-start" class="com.atlassian.confluence.setup.actions.SetupDatabaseAction" method="doDefault">
-            <interceptor-ref name="defaultSetupStack"/>
-            <result name="input" type="velocity">/setup/setupdb.vm</result>
-            <result name="skipToNextStep" type="redirect">setupstandarddb.action?database=${database}&amp;dbConfigInfo.databaseUrl=""&amp;dbConfigInfo.driverClassName=""&amp;dbConfigInfo.userName=""&amp;dbConfigInfo.password=""</result>
-        </action>
-
-        <action name="setupdb" class="com.atlassian.confluence.setup.actions.SetupDatabaseAction">
-            <interceptor-ref name="defaultSetupStack"/>
-            <result name="error" type="velocity">/setup/setupdb.vm</result>
-            <result name="input-standard-db" type="redirect">setupstandarddb-start.action?database=${database}</result>
-            <result name="input-datasource-db" type="redirect">setupdatasourcedb-start.action?database=${database}</result>
-        </action>
-
         <action name="setupembeddeddb-default" class="com.atlassian.confluence.setup.actions.SetupEmbeddedDatabaseAction">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="error" type="velocity">/setup/setupembeddeddb-failed.vm</result>
             <result name="success" type="redirect">setuppaths.action</result>
         </action>
 
-        <action name="setupstandarddb-start" class="com.atlassian.confluence.setup.actions.SetupStandardDatabaseAction" method="doDefault">
+        <action name="setupstandarddb-testconnection" class="com.atlassian.confluence.setup.actions.SetupStandardDatabaseTestConnectionAction" method="doDefault">
             <interceptor-ref name="defaultSetupStack"/>
-            <result name="input" type="velocity">/setup/setupstandarddb.vm</result>
-            <result name="error" type="velocity">/setup/setupstandarddb.vm</result>
-        </action>
-
-        <action name="setupstandarddb" class="com.atlassian.confluence.setup.actions.SetupStandardDatabaseAction">
-            <result name="success" type="redirect">setuppaths.action</result>
-            <result name="input" type="velocity">/setup/setupstandarddb.vm</result>
-            <result name="data-exists" type="velocity">/setup/setupstandarddb-data-exists.vm</result>
-            <result name="error" type="velocity">/setup/setupstandarddb-failed.vm</result>
+            <result name="json" type="json"/>
         </action>
 
         <action name="setupdatasourcedb-start" class="com.atlassian.confluence.setup.actions.SetupDatasourceAction" method="doDefault">
             <interceptor-ref name="defaultSetupStack"/>
             <result name="input" type="velocity">/setup/setupdatasourcedb.vm</result>
             <result name="error" type="velocity">/setup/setupdatasourcedb.vm</result>
+        </action>
+        <action name="setupdatasourcedb-testconnection" class="com.atlassian.confluence.setup.actions.SetupDatasourceTestConnectionAction" method="doDefault">
+            <interceptor-ref name="defaultSetupStack"/>
+            <result name="json" type="json"/>
         </action>
 
         <action name="setupdatasourcedb" class="com.atlassian.confluence.setup.actions.SetupDatasourceAction">
