@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-                      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+		 http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          metadata-complete="true"
-         version="3.0">
+         version="3.1">
 
     <display-name>Confluence</display-name>
     <description>Confluence Web App</description>
@@ -193,6 +192,11 @@
     <filter>
         <filter-name>login</filter-name>
         <filter-class>com.atlassian.seraph.filter.LoginFilter</filter-class>
+        <init-param>
+            <!-- This is required to opt-in for os_username and os_password in Seraph >= 3.1.0 -->
+            <param-name>allowUrlParameterValue</param-name>
+            <param-value>true</param-value>
+        </init-param>
     </filter>
 
     <filter>
@@ -370,6 +374,16 @@
     <filter>
         <filter-name>CloseTenantGateFilter</filter-name>
         <filter-class>com.atlassian.confluence.tenant.TenantGateFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>ServerInfoFilter</filter-name>
+        <filter-class>com.atlassian.confluence.util.ServerInfoFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>MobileAppRequestFilter</filter-name>
+        <filter-class>com.atlassian.confluence.util.MobileAppRequestFilter</filter-class>
     </filter>
 
     <!-- Plugins 2.5 filter changes -->
@@ -790,6 +804,16 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <filter-mapping>
+        <filter-name>ServerInfoFilter</filter-name>
+        <url-pattern>/server-info.action</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>MobileAppRequestFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- code that has to do tenant setup -->
     <filter-mapping>
         <filter-name>OpenTenantGateFilter</filter-name>
@@ -802,6 +826,10 @@
     <filter-mapping>
         <filter-name>OpenTenantGateFilter</filter-name>
         <url-pattern>/bootstrap/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>OpenTenantGateFilter</filter-name>
+        <url-pattern>/johnson/*</url-pattern>
     </filter-mapping>
 
     <!-- Plugins 2.5 filter changes -->
@@ -1398,6 +1426,11 @@
     <!-- Servlet Context Listeners (Executed on app startup/shutdown) -->
     <!-- ============================================================ -->
 
+    <!-- Initialize Johnson -->
+    <listener>
+        <listener-class>com.atlassian.johnson.context.JohnsonContextListener</listener-class>
+    </listener>
+
     <!-- Cleans up JavaBeans introspection caches on app shutdown, so that the classes and classloaders can be
          garbage-collected properly -->
     <listener>
@@ -1427,6 +1460,11 @@
     <!-- Bring plugin system up, if the database is configured. Plugins must be up before we can run the lifecycle modules. -->
     <listener>
         <listener-class>com.atlassian.confluence.plugin.PluginFrameworkContextListener</listener-class>
+    </listener>
+
+    <!-- Check if the system is under recovery mode and create recovery_admin user if not existing  -->
+    <listener>
+        <listener-class>com.atlassian.confluence.impl.security.recovery.RecoveryContextListener</listener-class>
     </listener>
 
     <!-- Perform remaining configured lifecycle events, if the application is set up -->
@@ -1556,6 +1594,21 @@
         <load-on-startup>0</load-on-startup>
     </servlet>
 
+    <servlet>
+        <servlet-name>johnson-analytics-servlet</servlet-name>
+        <servlet-class>com.atlassian.confluence.servlet.JohnsonAnalyticsServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>johnson-data-servlet</servlet-name>
+        <servlet-class>com.atlassian.confluence.servlet.JohnsonDataServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>johnson-dismiss-events-servlet</servlet-name>
+        <servlet-class>com.atlassian.confluence.servlet.JohnsonDismissEventsServlet</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>action</servlet-name>
         <url-pattern>*.action</url-pattern>
@@ -1647,6 +1700,21 @@
     <servlet-mapping>
         <servlet-name>noop</servlet-name>
         <url-pattern>/rest/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>johnson-analytics-servlet</servlet-name>
+        <url-pattern>/johnson/analytics/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>johnson-data-servlet</servlet-name>
+        <url-pattern>/johnson/data</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>johnson-dismiss-events-servlet</servlet-name>
+        <url-pattern>/johnson/events/dismiss</url-pattern>
     </servlet-mapping>
 
     <session-config>
