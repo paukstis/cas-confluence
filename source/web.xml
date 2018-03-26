@@ -221,7 +221,7 @@
 
     <filter>
         <filter-name>messagesDecoratorFilter</filter-name>
-        <filter-class>com.atlassian.confluence.security.websudo.MessagesDecoratorFilter</filter-class>
+        <filter-class>com.atlassian.confluence.util.message.MessagesDecoratorFilter</filter-class>
     </filter>
 
     <filter>

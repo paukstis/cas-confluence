@@ -888,6 +888,7 @@
             <result name="login" type="redirect">${loginUrl}</result>
             <result name="noEditPermission" type="redirect">${noPageEditPermissionRedirectUrl}</result>
             <result name="noSpaceEditPermission" type="redirect">${noSpaceEditPermissionRedirectUrl}</result>
+            <result name="cancel" type="redirect">${targetUrlPath}</result>
         </action>
 
         <action name="movepage" class="com.atlassian.confluence.pages.actions.MovePageAction">
@@ -2729,6 +2730,11 @@
             <result name="input" type="json"/>
             <result name="error" type="json"/>
             <result name="success" type="json"/>
+        </action>
+
+        <action name="configuremobileapps" class="com.atlassian.confluence.admin.actions.ConfigureMobileAppsAction">
+            <interceptor-ref name="defaultStack"/>
+            <result name="success" type="velocity">/admin/configuremobileapps.vm</result>
         </action>
     </package>
 
