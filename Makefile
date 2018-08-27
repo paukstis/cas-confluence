@@ -120,7 +120,7 @@ mkdir.target:
 	@mkdir -p target
 
 version: .FORCE
-	@VERSION=$$(ls $(APP_HOME)/confluence/WEB-INF/lib/confluence-?.?.?.jar | sed -e "s/.*confluence-\(.*\).jar/\1/"); \
+	@VERSION=$$(ls $(APP_HOME)/confluence/WEB-INF/lib/confluence-?.*.?.jar | sed -e "s/.*confluence-\(.*\).jar/\1/"); \
 	echo "Confluence version is $$VERSION"
 
 clean: mkdir.target
