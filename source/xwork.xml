@@ -15,6 +15,7 @@
             <result-type name="rawText" class="com.atlassian.confluence.setup.webwork.RawTextResult"/>
             <result-type name="rss" class="com.atlassian.xwork.results.RssResult"/>
             <result-type name="json" class="com.atlassian.confluence.json.JsonResult"/>
+            <result-type name="readonly-json" class="com.atlassian.confluence.json.ReadOnlyJsonResult"/>
             <result-type name="soy" class="com.atlassian.confluence.xwork.SoyResult"/>
         </result-types>
 
@@ -148,7 +149,9 @@
             <result name="httpmethodnotallowed" type="httpheader">
                 <param name="status">405</param>
             </result>
-
+            <result name="readonly" type="chain">
+                <param name="actionName">readonly</param>
+            </result>
             <result name="notpermitted" type="chain">
                 <param name="actionName">notpermitted</param>
             </result>
@@ -190,6 +193,11 @@
             <result name="success" type="velocity">/notpermitted.vm</result>
             <result name="login" type="redirect">${loginUrl}</result>
             <result name="json" type="json"/>
+        </action>
+        <action name="readonly" class="com.atlassian.confluence.accessmode.actions.ReadOnlyAccessAction">
+            <interceptor-ref name="defaultStack"/>
+            <result name="success" type="velocity">/notpermitted.vm</result>
+            <result name="json" type="readonly-json"/>
         </action>
         <action name="notpermittedpersonal" class="com.atlassian.confluence.security.actions.NotPermittedAction">
             <interceptor-ref name="defaultStack"/>
@@ -376,6 +384,7 @@
 
             <result name="error" type="velocity">/404.vm</result>
             <result name="success" type="velocity">/404.vm</result>
+            <result name="setup-success" type="velocity">/setup/404.vm</result>
         </action>
 
         <!-- No longer used, but retained just in case -->
@@ -1340,13 +1349,13 @@
             <result name="error" type="velocity">/pages/viewpage.vm</result>
             <!--
                 NOTE: If there are errors (See RemoveCommentAction-validation.xml) and INPUT is returned by the XWork validator,
-                we should just redirect to the page.
+                we should just forward to the page as sendRedirect in Tomcat 9 does not override the status code which is above 399.
 
                 e.g. If the comment has already been removed (CONF-4641), the end result is that the comment has been deleted anyway,
                 so this won't affect the user. If the space or page has been removed "behind their back", then an error page for that
                 will be displayed.
             -->
-            <result name="input" type="redirect">${@com.atlassian.confluence.util.GeneralUtil@customGetPageUrl(page)}showComments=true</result>
+            <result name="input" type="dispatcher">${@com.atlassian.confluence.util.GeneralUtil@customGetPageUrl(page)}showComments=true</result>
             <result name="cancel" type="redirect">${@com.atlassian.confluence.util.GeneralUtil@customGetPageUrl(page)}showComments=true</result>
             <result name="success" type="redirect">${@com.atlassian.confluence.util.GeneralUtil@customGetPageUrl(page)}showComments=true</result>
             <result name="notconfirmed" type="velocity">/pages/removecomment.vm</result>

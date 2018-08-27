@@ -169,6 +169,12 @@
         <filter-name>dropIfNotSetupFilter</filter-name>
         <filter-class>com.atlassian.confluence.web.filter.DropIfNotSetupFilter</filter-class>
     </filter>
+
+    <filter>
+        <filter-name>httpRequestMonitoringFilter</filter-name>
+        <filter-class>com.atlassian.confluence.internal.diagnostics.HttpRequestMonitoringFilter</filter-class>
+    </filter>
+
     <filter>
         <filter-name>language</filter-name>
         <filter-class>com.atlassian.confluence.web.filter.LanguageExtractionFilter</filter-class>
@@ -698,9 +704,21 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>dropIfNotSetupFilter</filter-name>
+        <url-pattern>/rest/analytics/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>dropIfNotSetupFilter</filter-name>
+        <url-pattern>/rest/synchrony-interop/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>dropIfNotSetupFilter</filter-name>
         <url-pattern>/rest/mywork/*</url-pattern>
     </filter-mapping>
 
+    <filter-mapping>
+        <filter-name>httpRequestMonitoringFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
     <filter-mapping>
         <filter-name>log404s</filter-name>
@@ -891,6 +909,10 @@
     <filter-mapping>
         <filter-name>OpenTenantGateFilter</filter-name>
         <url-pattern>/johnson/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>OpenTenantGateFilter</filter-name>
+        <url-pattern>/errors.jsp</url-pattern>
     </filter-mapping>
 
     <!-- Plugins 2.5 filter changes -->
@@ -1406,22 +1428,32 @@
     <filter-mapping>
         <filter-name>messagesDecoratorFilter</filter-name>
         <url-pattern>*.action</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
     <filter-mapping>
         <filter-name>messagesDecoratorFilter</filter-name>
         <url-pattern>*.vm</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
     <filter-mapping>
         <filter-name>messagesDecoratorFilter</filter-name>
         <url-pattern>/display/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
     <filter-mapping>
         <filter-name>messagesDecoratorFilter</filter-name>
         <url-pattern>/plugins/servlet/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
     <filter-mapping>
         <filter-name>messagesDecoratorFilter</filter-name>
         <url-pattern>/label/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
 
     <filter-mapping>
@@ -1805,5 +1837,14 @@
     <error-page>
         <error-code>404</error-code>
         <location>/fourohfour.action</location>
+    </error-page>
+
+    <error-page>
+        <exception-type>com.atlassian.sal.api.permission.NotAuthenticatedException</exception-type>
+        <location>/login.action</location>
+    </error-page>
+    <error-page>
+        <exception-type>com.atlassian.sal.api.permission.AuthorisationException</exception-type>
+        <location>/notpermitted.action</location>
     </error-page>
 </web-app>
